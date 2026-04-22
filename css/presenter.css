@@ -1,0 +1,91 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #000000;
+    color: #ffffff;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+.content-layer {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    width: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#timeDisplay {
+    font-weight: 700;
+    line-height: 1;
+    font-size: 20vw;
+    text-shadow: 2px 4px 10px rgba(0, 0, 0, 0.5);
+    transition: color 0.3s, font-size 0.3s;
+}
+
+#nameDisplay {
+    font-size: 4vw;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 1vh;
+    text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.5);
+    transition: color 0.3s;
+}
+
+#messageDisplay {
+    margin-top: 2vh;
+    font-size: 5vw;
+    font-weight: 500;
+    text-shadow: 1px 2px 8px rgba(0, 0, 0, 0.5);
+    transition: color 0.3s, font-size 0.3s;
+    min-height: 6vw;
+}
+
+/* Efeito de piscar quando o tempo acaba ou fica negativo */
+.blink {
+    animation: blinker 1s linear infinite;
+}
+
+.hide-element {
+    display: none !important;
+}
+
+.blink-msg {
+    animation: blinker-msg-fast 0.2s ease-in-out 3;
+}
+
+@keyframes blinker-msg-fast {
+    0% { opacity: 1; }
+    50% { opacity: 0.1; }
+    100% { opacity: 1; }
+}
+
+@keyframes blinker {
+    50% { opacity: 0; }
+}
