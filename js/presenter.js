@@ -74,6 +74,17 @@ function updateUI(state) {
     } else {
         bgImage.style.backgroundImage = 'none';
     }
+
+    if (state.settings.textShadow) {
+        const shadow = '2px 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)';
+        timeDisplay.style.textShadow = shadow;
+        messageDisplay.style.textShadow = shadow;
+        if (nameDisplay) nameDisplay.style.textShadow = shadow;
+    } else {
+        timeDisplay.style.textShadow = 'none';
+        messageDisplay.style.textShadow = 'none';
+        if (nameDisplay) nameDisplay.style.textShadow = 'none';
+    }
 }
 
 // Listen for updates from Control Panel

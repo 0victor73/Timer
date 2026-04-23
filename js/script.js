@@ -1,9 +1,6 @@
 // DOM Elements
-const timeDisplay = document.getElementById('previewTime');
-const messageDisplay = document.getElementById('previewMessage');
-const previewName = document.getElementById('previewName');
-const previewBg = document.getElementById('previewBg');
 const previewContainer = document.getElementById('previewContainer');
+const previewIframe = document.getElementById('previewIframe');
 
 const playPauseBtn = document.getElementById('playPauseBtn');
 const stopBtn = document.getElementById('stopBtn');
@@ -48,6 +45,7 @@ const setTimeSize = document.getElementById('setTimeSize');
 const setMsgSize = document.getElementById('setMsgSize');
 const setBgImage = document.getElementById('setBgImage');
 const setBgImageFile = document.getElementById('setBgImageFile');
+const setTextShadow = document.getElementById('setTextShadow');
 const applySettingsBtn = document.getElementById('applySettingsBtn');
 
 // Mini Preview
@@ -69,7 +67,8 @@ let state = {
         textColor: "#ffffff",
         timeSize: 20,
         msgSize: 5,
-        bgImage: ""
+        bgImage: "",
+        textShadow: false
     }
 };
 
@@ -117,7 +116,8 @@ function loadSettings() {
     setTextColor.value = state.settings.textColor;
     setTimeSize.value = state.settings.timeSize;
     setMsgSize.value = state.settings.msgSize;
-    setBgImage.value = state.settings.bgImage;
+    setBgImage.value = state.settings.bgImage || "";
+    setTextShadow.checked = state.settings.textShadow || false;
 
     updateMiniPreview();
     applyPreviewSettings();
@@ -143,6 +143,15 @@ function updateMiniPreview() {
     } else {
         miniPreviewBg.style.backgroundImage = 'none';
     }
+
+    if (setTextShadow.checked) {
+        const shadow = '2px 2px 8px rgba(0,0,0,0.8)';
+        miniPreviewTime.style.textShadow = shadow;
+        miniPreviewMsg.style.textShadow = shadow;
+    } else {
+        miniPreviewTime.style.textShadow = 'none';
+        miniPreviewMsg.style.textShadow = 'none';
+    }
 }
 
 function handleImageUpload(e) {
@@ -163,7 +172,8 @@ function applySettings() {
         textColor: setTextColor.value,
         timeSize: parseInt(setTimeSize.value),
         msgSize: parseInt(setMsgSize.value),
-        bgImage: setBgImage.value
+        bgImage: setBgImage.value,
+        textShadow: setTextShadow.checked
     };
     localStorage.setItem('timer_settings', JSON.stringify(state.settings));
     applyPreviewSettings();
@@ -193,7 +203,8 @@ function saveCustomTheme() {
             textColor: setTextColor.value,
             timeSize: parseInt(setTimeSize.value),
             msgSize: parseInt(setMsgSize.value),
-            bgImage: setBgImage.value
+            bgImage: setBgImage.value,
+            textShadow: setTextShadow.checked
         }
     };
 
@@ -210,7 +221,8 @@ window.loadSpecificTheme = function (id) {
         setTextColor.value = t.settings.textColor;
         setTimeSize.value = t.settings.timeSize;
         setMsgSize.value = t.settings.msgSize;
-        setBgImage.value = t.settings.bgImage;
+        setBgImage.value = t.settings.bgImage || "";
+        setTextShadow.checked = t.settings.textShadow || false;
         updateMiniPreview();
         applySettings();
     }
@@ -251,28 +263,7 @@ function renderThemesList() {
 }
 
 function applyPreviewSettings() {
-    previewContainer.style.backgroundColor = state.settings.bgColor;
-    timeDisplay.style.color = state.settings.textColor;
-    messageDisplay.style.color = state.settings.textColor;
-    if (previewName) previewName.style.color = state.settings.textColor;
-
-    const shouldHideTimer = state.timeLeft === 0 && !state.isRunning && state.message !== "";
-    if (shouldHideTimer) {
-        timeDisplay.classList.add('hide-element');
-        if (previewName) previewName.classList.add('hide-element');
-        messageDisplay.style.fontSize = Math.max(state.settings.msgSize, state.settings.timeSize * 0.8) + 'cqw';
-    } else {
-        timeDisplay.classList.remove('hide-element');
-        if (previewName) previewName.classList.remove('hide-element');
-        timeDisplay.style.fontSize = state.settings.timeSize + 'cqw';
-        messageDisplay.style.fontSize = state.settings.msgSize + 'cqw';
-    }
-
-    if (state.settings.bgImage) {
-        previewBg.style.backgroundImage = `url('${state.settings.bgImage}')`;
-    } else {
-        previewBg.style.backgroundImage = 'none';
-    }
+    // A prévia agora usa um iframe que se atualiza via BroadcastChannel automaticamente
 }
 
 // Timer Logic
@@ -291,29 +282,7 @@ function formatTime(seconds) {
 }
 
 function updateDisplay() {
-    if (previewName) previewName.textContent = state.timerName;
-    timeDisplay.textContent = formatTime(state.timeLeft);
-    messageDisplay.textContent = state.message;
-
-    if (state.timeLeft < 0) {
-        timeDisplay.classList.add('blink');
-        timeDisplay.style.color = 'var(--danger)';
-    } else {
-        timeDisplay.classList.remove('blink');
-        timeDisplay.style.color = state.settings.textColor;
-    }
-    if (state.messageBlink !== lastBlinkId) {
-        lastBlinkId = state.messageBlink;
-        if (state.messageBlink > 0) {
-            messageDisplay.classList.remove('blink-msg');
-            void messageDisplay.offsetWidth; // Force reflow to restart animation
-            messageDisplay.classList.add('blink-msg');
-        } else {
-            messageDisplay.classList.remove('blink-msg');
-        }
-    }
-
-    applyPreviewSettings(); // Atualiza classes hide e font-sizes
+    // A renderização da prévia agora é delegada ao iframe via BroadcastChannel
     broadcastState();
 }
 
@@ -464,12 +433,62 @@ function parseFormTimer() {
     }
 }
 
+let draggedTimerIndex = null;
+
+function handleDragStart(e) {
+    draggedTimerIndex = parseInt(this.dataset.index);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', this.dataset.index);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (parseInt(this.dataset.index) !== draggedTimerIndex) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+    const dropIndex = parseInt(this.dataset.index);
+    
+    if (draggedTimerIndex !== dropIndex && draggedTimerIndex !== null) {
+        const draggedItem = timers.splice(draggedTimerIndex, 1)[0];
+        timers.splice(dropIndex, 0, draggedItem);
+        renderTimers();
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.timer-item').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+    draggedTimerIndex = null;
+}
+
 function renderTimers() {
     timerList.innerHTML = '';
-    timers.forEach(t => {
+    timers.forEach((t, index) => {
         const div = document.createElement('div');
         div.className = 'timer-item';
+        div.draggable = true;
+        div.dataset.id = t.id;
+        div.dataset.index = index;
+        
         div.innerHTML = `
+            <div class="drag-handle" title="Arraste para reordenar"><i class="fas fa-grip-vertical"></i></div>
             <div class="timer-info" onclick="selectTimer('${t.id}')">
                 <div class="timer-name">${t.name}</div>
                 <div class="timer-duration">${formatTime(t.duration)}</div>
@@ -480,6 +499,14 @@ function renderTimers() {
                 <button onclick="removeTimer('${t.id}')" title="Remover"><i class="fas fa-trash"></i></button>
             </div>
         `;
+
+        div.addEventListener('dragstart', handleDragStart);
+        div.addEventListener('dragenter', handleDragEnter);
+        div.addEventListener('dragover', handleDragOver);
+        div.addEventListener('dragleave', handleDragLeave);
+        div.addEventListener('drop', handleDrop);
+        div.addEventListener('dragend', handleDragEnd);
+
         timerList.appendChild(div);
     });
 }
@@ -635,6 +662,7 @@ function setupEventListeners() {
     setMsgSize.addEventListener('input', updateMiniPreview);
     setBgImage.addEventListener('input', updateMiniPreview);
     setBgImageFile.addEventListener('change', handleImageUpload);
+    setTextShadow.addEventListener('change', updateMiniPreview);
 
     applySettingsBtn.addEventListener('click', applySettings);
     saveThemeBtn.addEventListener('click', saveCustomTheme);

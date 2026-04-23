@@ -324,6 +324,14 @@ body {
     display: none !important;
 }
 
+.blink {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% { opacity: 0; }
+}
+
 .blink-msg {
     animation: blinker-msg-fast 0.2s ease-in-out 3;
 }
@@ -428,6 +436,28 @@ body {
 .timer-item.active {
     border-left: 4px solid var(--primary);
     background-color: rgba(79, 70, 229, 0.05);
+}
+
+.timer-item.dragging {
+    opacity: 0.5;
+    border: 1px dashed var(--primary);
+}
+
+.timer-item.drag-over {
+    border-top: 2px dashed var(--primary);
+    background-color: rgba(79, 70, 229, 0.05);
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    padding-right: 0.75rem;
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+}
+.drag-handle:active {
+    cursor: grabbing;
 }
 .timer-info { flex: 1; cursor: pointer; }
 .timer-name { font-weight: 600; font-size: 0.95rem; }

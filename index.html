@@ -54,6 +54,10 @@
                     <label>Tamanho da Fonte (Mensagem - cqw)</label>
                     <input type="range" id="setMsgSize" min="2" max="15" value="5">
                 </div>
+                <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="setTextShadow" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="setTextShadow" style="cursor: pointer; margin-bottom: 0;">Ativar Sombra no Texto</label>
+                </div>
                 <div class="form-group" style="grid-column: span 2;">
                     <label>Imagem de Fundo</label>
                     <div style="display: flex; gap: 0.5rem;">
@@ -88,13 +92,8 @@
         <!-- Coluna Esquerda -->
         <section class="panel left-panel">
             <h2>Prévia</h2>
-            <div class="preview-container" id="previewContainer">
-                <div class="preview-bg" id="previewBg"></div>
-                <div class="preview-content">
-                    <div class="preview-name" id="previewName"></div>
-                    <div class="preview-time" id="previewTime">00:00:00</div>
-                    <div class="preview-message" id="previewMessage"></div>
-                </div>
+            <div class="preview-container" id="previewContainer" style="padding: 0; background: #000; border: none;">
+                <iframe src="presenter.html" id="previewIframe" style="width: 100%; height: 100%; border: none; pointer-events: none; border-radius: 8px;"></iframe>
             </div>
 
             <div class="controls">
